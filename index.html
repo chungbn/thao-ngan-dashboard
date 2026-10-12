@@ -94,6 +94,15 @@
   .hw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
   .hw-head h2 { margin: 0; }
   .hw-head a { color: var(--muted); font-weight: 600; font-size: 15px; }
+  .hw-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .hw-refresh {
+    padding: 6px 14px; border-radius: 12px; font-weight: 700; font-size: 15px;
+    background: var(--bg); color: var(--ink); border: 2px solid var(--line);
+  }
+  .hw-refresh:hover:not(:disabled) { border-color: var(--accent); }
+  .hw-refresh:disabled { cursor: wait; opacity: .7; }
+  .hw-status { margin: -8px 0 12px; color: var(--muted); font-size: 14px; }
+  .hw-status:empty { display: none; }
   .hw-date { margin: 2px 0 12px; color: var(--muted); font-weight: 600; }
   #hwDays { margin-bottom: 12px; }
   #hwDays .chip { background: var(--bg); }
@@ -139,9 +148,13 @@
   <section class="hw" id="hw">
     <div class="hw-head">
       <h2>📝 Bài tập về nhà</h2>
-      <a id="hwSheet" target="_blank" rel="noopener">Xem bảng giao bài ↗</a>
+      <div class="hw-actions">
+        <button class="hw-refresh" id="hwRefresh" type="button">🔄 Cập nhật</button>
+        <a id="hwSheet" target="_blank" rel="noopener">Xem bảng giao bài ↗</a>
+      </div>
     </div>
     <p class="hw-date" id="hwDate">Đang tải bài tập từ bảng giao bài…</p>
+    <p class="hw-status" id="hwStatus"></p>
     <div class="chips" id="hwDays"></div>
     <div class="hw-progress" id="hwProgress" hidden>
       <div class="hw-track"><div class="hw-bar" id="hwBar"></div></div>

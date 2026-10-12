@@ -31,7 +31,7 @@ function hwLoadSheet(name) {
     const timer = setTimeout(() => done(null), 10000);
     window[cb] = (res) => done(res && res.status === "ok" ? res.table : null);
     s.onerror = () => done(null);
-    s.src = `https://docs.google.com/spreadsheets/d/${HW.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(name)}`;
+    s.src = `https://docs.google.com/spreadsheets/d/${HW.sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(name)}&_=${Date.now()}`;
     document.head.appendChild(s);
   });
 }
@@ -81,7 +81,7 @@ function hwParseTable(table, today) {
   return days;
 }
 
-async function hwLoad() {
+async function hwLoad(keepSelected) {
   const today = hwToday();
   const week = Math.floor((today - HW.week1) / (7 * 86400000)) + 1;
   // Lấy cả tuần trước và tuần sau phòng khi cô đánh số tuần lệch (nghỉ lễ…).
@@ -95,7 +95,8 @@ async function hwLoad() {
 
   // Chọn hôm nay, nếu không có (cuối tuần) thì chọn ngày gần nhất trước đó.
   const past = hwDays.filter(d => d.date <= today);
-  hwSelected = (past[past.length - 1] || hwDays[0])?.key ?? null;
+  if (keepSelected && hwDays.some(d => d.key === keepSelected)) hwSelected = keepSelected;
+  else hwSelected = (past[past.length - 1] || hwDays[0])?.key ?? null;
 }
 
 // ---------- Đánh dấu đã làm (lưu trên máy này) ----------
@@ -181,11 +182,25 @@ $("hwDays").addEventListener("click", (e) => {
 });
 $("hwSheet").href = HW.sheetUrl;
 
-(async () => {
+function hwStatus(text) { $("hwStatus").textContent = text; }
+
+async function hwRefresh() {
+  const btn = $("hwRefresh");
+  const hadData = hwDays.length > 0;
+  btn.disabled = true;
+  btn.textContent = "⏳ Đang cập nhật…";
   try {
-    await hwLoad();
+    await hwLoad(hwSelected);
     hwRender();
+    hwStatus(`Cập nhật lúc ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`);
   } catch {
-    $("hwBody").innerHTML = `<p class="hw-empty">Không tải được bảng giao bài. Kiểm tra mạng rồi tải lại trang, hoặc mở <a href="${esc(HW.sheetUrl)}" target="_blank" rel="noopener">bảng giao bài</a>.</p>`;
+    if (hadData) hwStatus("Chưa cập nhật được, kiểm tra mạng rồi bấm Cập nhật lại");
+    else $("hwBody").innerHTML = `<p class="hw-empty">Không tải được bảng giao bài. Kiểm tra mạng rồi bấm <b>Cập nhật</b>, hoặc mở <a href="${esc(HW.sheetUrl)}" target="_blank" rel="noopener">bảng giao bài</a>.</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "🔄 Cập nhật";
   }
-})();
+}
+
+$("hwRefresh").onclick = hwRefresh;
+hwRefresh();
