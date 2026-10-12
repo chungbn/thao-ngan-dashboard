@@ -20,6 +20,7 @@
     --tv: #ff6b8a;        --tv-bg: #ffe9ef;
     --ta: #22b07d;        --ta-bg: #e2f7ee;
     --khac: #a46bff;      --khac-bg: #f1e9ff;
+    --done: #22b07d;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
@@ -86,6 +87,39 @@
   .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
   .empty .big { font-size: 56px; }
   .empty code { background: var(--surface); padding: 2px 6px; border-radius: 6px; }
+  .hw {
+    background: var(--surface); border-radius: 24px; box-shadow: var(--shadow);
+    padding: 18px; margin-bottom: 8px;
+  }
+  .hw-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .hw-head h2 { margin: 0; }
+  .hw-head a { color: var(--muted); font-weight: 600; font-size: 15px; }
+  .hw-date { margin: 2px 0 12px; color: var(--muted); font-weight: 600; }
+  #hwDays { margin-bottom: 12px; }
+  #hwDays .chip { background: var(--bg); }
+  .hw-progress { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-weight: 700; flex-wrap: wrap; }
+  .hw-track { flex: 1; min-width: 120px; height: 14px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .hw-bar { height: 100%; width: 0; background: var(--done); border-radius: 999px; transition: width .3s; }
+  #hwBody { display: grid; gap: 12px; }
+  .hw-subject { display: grid; gap: 6px; padding: 12px; border-radius: 18px; background: var(--bg); }
+  .hw-subject-head { margin-bottom: 2px; }
+  .hw-task { position: relative;
+    display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px; border-radius: 14px;
+    background: var(--surface); cursor: pointer; font-size: 18px; font-weight: 600;
+  }
+  .hw-task input { position: absolute; opacity: 0; pointer-events: none; }
+  .hw-task .box {
+    flex: none; width: 28px; height: 28px; border-radius: 9px; border: 3px solid var(--c);
+    display: grid; place-items: center; margin-top: 1px;
+  }
+  .hw-task input:checked + .box { background: var(--done); border-color: var(--done); }
+  .hw-task input:checked + .box::after { content: "✓"; color: #fff; font-weight: 800; font-size: 18px; }
+  .hw-task input:focus-visible + .box { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .hw-task .txt { min-width: 0; overflow-wrap: anywhere; }
+  .hw-task.done .txt { text-decoration: line-through; color: var(--muted); }
+  .hw-task a { color: var(--c); white-space: nowrap; }
+  .hw-comment { margin: 2px 4px 0; color: var(--muted); font-size: 15px; }
+  .hw-empty { margin: 0; color: var(--muted); font-weight: 600; }
   [hidden] { display: none !important; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -102,11 +136,24 @@
     <div class="chips" id="chips"></div>
   </div>
 
+  <section class="hw" id="hw">
+    <div class="hw-head">
+      <h2>📝 Bài tập về nhà</h2>
+      <a id="hwSheet" target="_blank" rel="noopener">Xem bảng giao bài ↗</a>
+    </div>
+    <p class="hw-date" id="hwDate">Đang tải bài tập từ bảng giao bài…</p>
+    <div class="chips" id="hwDays"></div>
+    <div class="hw-progress" id="hwProgress" hidden>
+      <div class="hw-track"><div class="hw-bar" id="hwBar"></div></div>
+      <span id="hwCount"></span>
+    </div>
+    <div id="hwBody"></div>
+  </section>
+
   <section id="favSec" hidden>
     <h2>⭐ Hay dùng</h2>
     <div class="grid" id="favGrid"></div>
   </section>
-  <div id="sections"></div>
   <section id="mainSec">
     <h2 id="allTitle">📚 Tất cả bài tập</h2>
     <div class="grid" id="grid"></div>
@@ -115,6 +162,7 @@
       <p id="emptyText"></p>
     </div>
   </section>
+  <div id="sections"></div>
 </div>
 
 <script src="links.js"></script>
@@ -130,8 +178,12 @@ const $ = (id) => document.getElementById(id);
 const links = (window.LINKS || []).filter(l => l && l.title && l.url);
 let filter = "all";
 
-// Biểu tượng cho từng section (tên section lấy từ trường `section` trong links.js)
-const SECTION_EMOJI = { "Cuộc thi": "🏆" };
+// Các section hiện theo thứ tự này, sau mục Bài tập (tên lấy từ trường `section` trong links.js).
+// Section không có trong danh sách sẽ hiện ở cuối, với biểu tượng 📂.
+const SECTIONS = [
+  { name: "Cuộc thi", emoji: "🏆" },
+  { name: "Giải trí", emoji: "🎲" },
+];
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -182,8 +234,10 @@ function render() {
     if (!groups.has(l.section)) groups.set(l.section, []);
     groups.get(l.section).push(l);
   }
-  $("sections").innerHTML = [...groups].map(([name, items]) => `<section>
-    <h2>${SECTION_EMOJI[name] || "📂"} ${esc(name)}</h2>
+  const order = (name) => { const i = SECTIONS.findIndex(x => x.name === name); return i < 0 ? SECTIONS.length : i; };
+  const sorted = [...groups].sort((a, b) => order(a[0]) - order(b[0]));
+  $("sections").innerHTML = sorted.map(([name, items]) => `<section>
+    <h2>${SECTIONS.find(x => x.name === name)?.emoji || "📂"} ${esc(name)}</h2>
     <div class="grid">${items.map(card).join("")}</div>
   </section>`).join("");
 
@@ -208,5 +262,6 @@ $("chips").onclick = (e) => {
 header();
 render();
 </script>
+<script src="homework.js"></script>
 </body>
 </html>
