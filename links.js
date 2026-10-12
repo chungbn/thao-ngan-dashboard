@@ -21,4 +21,5 @@ window.LINKS = [
   { title: "Luyện cờ vây", url: "https://chungbn.github.io/go-training/", subject: "khac", emoji: "⚫", note: "Luyện chơi cờ vây", section: "Giải trí" },
   { title: "Học đánh vần Tiếng Việt", url: "https://chungbn.github.io/danh-van/", subject: "tv", emoji: "🔠", note: "Luyện đánh vần" },
   { title: "Explore Our World 1", url: "https://learn.eltngl.com/dashboard/assignments", subject: "ta", emoji: "🌎", note: "Bài tập trên National Geographic Learning" },
+  { title: "App BigBox", url: "https://play.google.com/store/apps/details?id=woongjin.co.kr.bigbox", subject: "ta", emoji: "📦", note: "Học Tiếng Anh trên app BigBox" },
 ];
