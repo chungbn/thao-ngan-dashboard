@@ -14,7 +14,6 @@
 //   { title: "Luyện bảng cửu chương", url: "https://...", subject: "toan", emoji: "➕", note: "Mỗi tối 15 phút", fav: true },
 
 window.LINKS = [
-  { title: "Bài tập về nhà trên lớp", url: "https://docs.google.com/spreadsheets/d/1toaR38rq50zWISGFuwyh35TEM5zZB4RdZIX01bZo2Ag/edit?usp=sharing", subject: "khac", emoji: "📝", note: "Cô giao bài tập về nhà", fav: true },
   { title: "Cuộc thi Violympic", url: "https://violympic.vn/user-home", subject: "toan", emoji: "🏆", note: "Luyện thi Violympic", section: "Cuộc thi" },
   { title: "Cuộc thi IOE", url: "https://ioe.vn/hoc-sinh", subject: "ta", emoji: "🌍", note: "Thi Tiếng Anh trên mạng", section: "Cuộc thi" },
   { title: "Ôn thi Toán TIMO", url: "https://timo-test-268b2.web.app/", subject: "toan", emoji: "🧮", note: "Luyện đề thi TIMO", section: "Cuộc thi" },
