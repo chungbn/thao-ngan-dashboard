@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Góc Học Tập Thảo Ngân</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff8ef;
+    --surface: #ffffff;
+    --ink: #2d2a32;
+    --muted: #7a7184;
+    --line: #f0e6da;
+    --accent: #ff7a59;
+    --shadow: 0 6px 0 rgba(45, 42, 50, .06), 0 10px 24px rgba(45, 42, 50, .06);
+    --toan: #4f8cff;      --toan-bg: #e8f0ff;
+    --tv: #ff6b8a;        --tv-bg: #ffe9ef;
+    --ta: #22b07d;        --ta-bg: #e2f7ee;
+    --khac: #a46bff;      --khac-bg: #f1e9ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1c1a22; --surface: #26232e; --ink: #f3eff8; --muted: #a59eb0; --line: #36323f;
+      --shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+      --toan-bg: #26324d; --tv-bg: #4a2733; --ta-bg: #1f3d33; --khac-bg: #352a4d;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1c1a22; --surface: #26232e; --ink: #f3eff8; --muted: #a59eb0; --line: #36323f;
+    --shadow: 0 6px 0 rgba(0,0,0,.25), 0 10px 24px rgba(0,0,0,.25);
+    --toan-bg: #26324d; --tv-bg: #4a2733; --ta-bg: #1f3d33; --khac-bg: #352a4d;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Baloo 2", system-ui, -apple-system, sans-serif;
+    font-size: 17px; line-height: 1.4;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 24px 16px 64px; }
+
+  header { margin-bottom: 20px; }
+  header h1 { margin: 0; font-size: clamp(26px, 5vw, 38px); font-weight: 800; letter-spacing: -.5px; }
+  header p { margin: 2px 0 0; color: var(--muted); font-weight: 500; }
+
+  button { font: inherit; cursor: pointer; border: 0; }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 18px; }
+  .search {
+    flex: 1; min-width: 200px; padding: 12px 16px; border-radius: 16px;
+    border: 2px solid var(--line); background: var(--surface); color: var(--ink);
+    font: inherit; outline: none;
+  }
+  .search:focus { border-color: var(--accent); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: 16px;
+    background: var(--surface); color: var(--muted); border: 2px solid var(--line);
+  }
+  .chip.active { color: var(--ink); border-color: var(--ink); }
+
+  h2 { font-size: 20px; margin: 24px 0 10px; font-weight: 800; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
+  .card {
+    display: flex; flex-direction: column; gap: 6px; min-width: 0;
+    padding: 16px; border-radius: 22px; background: var(--surface);
+    box-shadow: var(--shadow); color: inherit; text-decoration: none;
+    border-top: 6px solid var(--c); transition: transform .12s;
+    min-height: 140px;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card .emoji {
+    width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center;
+    font-size: 30px; background: var(--cbg);
+  }
+  .card .title { font-size: 19px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+  .card .note { color: var(--muted); font-size: 15px; overflow-wrap: anywhere; }
+  .card .meta { margin-top: auto; font-size: 14px; }
+  .tag { padding: 2px 10px; border-radius: 999px; background: var(--cbg); color: var(--c); font-weight: 700; }
+
+  .empty { text-align: center; padding: 48px 16px; color: var(--muted); }
+  .empty .big { font-size: 56px; }
+  .empty code { background: var(--surface); padding: 2px 6px; border-radius: 6px; }
+  [hidden] { display: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="greet">Chào Thảo Ngân! 👋</h1>
+    <p id="today"></p>
+  </header>
+
+  <div class="bar">
+    <input class="search" id="q" type="search" placeholder="🔎 Tìm bài tập…" autocomplete="off">
+    <div class="chips" id="chips"></div>
+  </div>
+
+  <section id="favSec" hidden>
+    <h2>⭐ Hay dùng</h2>
+    <div class="grid" id="favGrid"></div>
+  </section>
+  <div id="sections"></div>
+  <section id="mainSec">
+    <h2 id="allTitle">📚 Tất cả bài tập</h2>
+    <div class="grid" id="grid"></div>
+    <div class="empty" id="empty" hidden>
+      <div class="big" id="emptyIcon">🌱</div>
+      <p id="emptyText"></p>
+    </div>
+  </section>
+</div>
+
+<script src="links.js"></script>
+<script>
+const SUBJECTS = {
+  toan: { name: "Toán",       emoji: "🔢", color: "var(--toan)", bg: "var(--toan-bg)" },
+  tv:   { name: "Tiếng Việt", emoji: "📖", color: "var(--tv)",   bg: "var(--tv-bg)" },
+  ta:   { name: "Tiếng Anh",  emoji: "🔤", color: "var(--ta)",   bg: "var(--ta-bg)" },
+  khac: { name: "Khác",       emoji: "🎨", color: "var(--khac)", bg: "var(--khac-bg)" },
+};
+
+const $ = (id) => document.getElementById(id);
+const links = (window.LINKS || []).filter(l => l && l.title && l.url);
+let filter = "all";
+
+// Biểu tượng cho từng section (tên section lấy từ trường `section` trong links.js)
+const SECTION_EMOJI = { "Cuộc thi": "🏆" };
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function normUrl(u) {
+  u = String(u).trim();
+  return /^https?:\/\//i.test(u) ? u : "https://" + u;
+}
+
+function header() {
+  const h = new Date().getHours();
+  const part = h < 11 ? "Chào buổi sáng" : h < 14 ? "Chào buổi trưa" : h < 18 ? "Chào buổi chiều" : "Chào buổi tối";
+  $("greet").textContent = `${part}, Thảo Ngân! 👋`;
+  $("today").textContent = new Date().toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+function renderChips() {
+  const counts = links.reduce((m, l) => (m[l.subject] = (m[l.subject] || 0) + 1, m), {});
+  const items = [["all", "🌈 Tất cả", links.length], ...Object.entries(SUBJECTS).map(([k, s]) => [k, `${s.emoji} ${s.name}`, counts[k] || 0])];
+  $("chips").innerHTML = items.map(([k, label, n]) =>
+    `<button class="chip ${filter === k ? "active" : ""}" data-f="${k}">${label} <small>${n}</small></button>`).join("");
+}
+
+function card(l) {
+  const s = SUBJECTS[l.subject] || SUBJECTS.khac;
+  return `<a class="card" href="${esc(normUrl(l.url))}" target="_blank" rel="noopener"
+      style="--c:${s.color};--cbg:${s.bg}">
+    <div class="emoji">${esc(l.emoji || s.emoji)}</div>
+    <div class="title">${esc(l.title)}</div>
+    ${l.note ? `<div class="note">${esc(l.note)}</div>` : ""}
+    <div class="meta"><span class="tag">${s.name}</span></div>
+  </a>`;
+}
+
+function render() {
+  renderChips();
+  const q = $("q").value.trim().toLowerCase();
+  const shown = links
+    .filter(l => filter === "all" || (SUBJECTS[l.subject] ? l.subject : "khac") === filter)
+    .filter(l => !q || (l.title + " " + (l.note || "") + " " + (l.section || "") + " " + l.url).toLowerCase().includes(q));
+  const favs = shown.filter(l => l.fav);
+
+  $("favSec").hidden = favs.length === 0;
+  $("favGrid").innerHTML = favs.map(card).join("");
+
+  const groups = new Map();
+  for (const l of shown) if (l.section) {
+    if (!groups.has(l.section)) groups.set(l.section, []);
+    groups.get(l.section).push(l);
+  }
+  $("sections").innerHTML = [...groups].map(([name, items]) => `<section>
+    <h2>${SECTION_EMOJI[name] || "📂"} ${esc(name)}</h2>
+    <div class="grid">${items.map(card).join("")}</div>
+  </section>`).join("");
+
+  const rest = shown.filter(l => !l.section);
+  $("grid").innerHTML = rest.map(card).join("");
+  const subj = filter === "all" ? null : SUBJECTS[filter];
+  $("allTitle").textContent = subj ? `${subj.emoji} ${subj.name}` : groups.size ? "📚 Bài tập" : "📚 Tất cả bài tập";
+  $("mainSec").hidden = rest.length === 0 && shown.length > 0;
+  $("empty").hidden = shown.length > 0;
+  $("emptyIcon").textContent = links.length === 0 ? "🌱" : "🔍";
+  $("emptyText").innerHTML = links.length === 0
+    ? "Chưa có bài tập nào. Bố mẹ thêm link vào file <code>links.js</code> nhé!"
+    : "Không tìm thấy bài tập nào phù hợp.";
+}
+
+$("q").oninput = render;
+$("chips").onclick = (e) => {
+  const b = e.target.closest("[data-f]");
+  if (b) { filter = b.dataset.f; render(); }
+};
+
+header();
+render();
+</script>
+</body>
+</html>
