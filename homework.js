@@ -162,12 +162,75 @@ function hwRender() {
           <input type="checkbox" data-task="${esc(id)}" ${checked ? "checked" : ""}>
           <span class="box" aria-hidden="true"></span>
           <span class="txt">${esc(t.text)}${t.urls.map((u, i) => ` <a href="${esc(u)}" target="_blank" rel="noopener">${t.urls.length > 1 ? `Link ${i + 1}` : "Mở link"} ↗</a>`).join("")}</span>
+          ${hwCanSpeak ? `<button type="button" class="hw-say" data-say="${esc(t.text)}" title="Đọc to" aria-label="Đọc to: ${esc(t.text)}">🔊</button>` : ""}
         </label>`;
       }).join("")}
       ${s.comment ? `<p class="hw-comment">💬 Cô nhắn: ${esc(s.comment)}</p>` : ""}
     </div>`;
   }).join("");
 }
+
+// ---------- Đọc to (giọng đọc có sẵn của máy) ----------
+const hwCanSpeak = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
+
+// Viết đầy đủ các chữ tắt để máy đọc cho đúng
+function hwSpeakText(text) {
+  return String(text)
+    .replace(/\bTV\b/g, "Tiếng Việt")
+    .replace(/\bBDNL\b/g, "bồi dưỡng năng lực")
+    .replace(/\bVBT\b/g, "vở bài tập")
+    .replace(/\btr\.?\s*(\d)/gi, "trang $1")
+    .replace(/https?:\/\/\S+/g, "");
+}
+
+function hwSpeak(parts, btn) {
+  const synth = window.speechSynthesis;
+  const wasSpeaking = btn?.classList.contains("speaking");
+  synth.cancel();
+  document.querySelectorAll(".speaking").forEach(b => b.classList.remove("speaking"));
+  if (wasSpeaking) return; // bấm lần nữa để dừng
+
+  const voices = synth.getVoices();
+  const voice = voices.find(v => /^vi/i.test(v.lang));
+  if (voices.length && !voice) hwStatus("Máy này chưa có giọng đọc tiếng Việt, nên đọc có thể chưa chuẩn");
+
+  parts.forEach((text, i) => {
+    const u = new SpeechSynthesisUtterance(hwSpeakText(text));
+    u.lang = "vi-VN";
+    if (voice) u.voice = voice;
+    u.rate = 0.85;
+    if (i === parts.length - 1 && btn) u.onend = u.onerror = () => btn.classList.remove("speaking");
+    synth.speak(u);
+  });
+  btn?.classList.add("speaking");
+}
+
+function hwSpeakDay() {
+  const day = hwDays.find(d => d.key === hwSelected);
+  if (!day) return;
+  const subjects = day.subjects.filter(s => s.tasks.length);
+  const parts = [subjects.length
+    ? `Bài tập về nhà ${day.label}, ngày ${day.date.getDate()} tháng ${day.date.getMonth() + 1}.`
+    : `${day.label} cô chưa giao bài tập về nhà.`];
+  for (const s of subjects) {
+    parts.push(`Môn ${s.name}.`);
+    s.tasks.forEach((t, i) => parts.push(`${s.tasks.length > 1 ? `Việc ${i + 1}: ` : ""}${t.text}.${hwDone[hwTaskId(day, s, t)] ? " Đã xong." : ""}`));
+  }
+  hwSpeak(parts, $("hwSayAll"));
+}
+
+if (hwCanSpeak) {
+  $("hwSayAll").hidden = false;
+  $("hwSayAll").onclick = hwSpeakDay;
+  speechSynthesis.getVoices(); // một số trình duyệt nạp danh sách giọng đọc chậm
+}
+
+$("hwBody").addEventListener("click", (e) => {
+  const b = e.target.closest(".hw-say");
+  if (!b) return;
+  e.preventDefault();
+  hwSpeak([b.dataset.say], b);
+});
 
 $("hwBody").addEventListener("change", (e) => {
   const id = e.target.dataset.task;
