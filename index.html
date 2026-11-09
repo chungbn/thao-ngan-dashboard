@@ -211,7 +211,7 @@ function esc(s) {
 }
 function normUrl(u) {
   u = String(u).trim();
-  return /^https?:\/\//i.test(u) ? u : "https://" + u;
+  return /^(https?:\/\/|intent:)/i.test(u) ? u : "https://" + u;
 }
 
 function header() {
@@ -230,7 +230,10 @@ function renderChips() {
 
 function card(l) {
   const s = SUBJECTS[l.subject] || SUBJECTS.khac;
-  return `<a class="card" href="${esc(normUrl(l.url))}" target="_blank" rel="noopener"
+  const url = normUrl(l.url);
+  // Link intent: (mở app Android) phải mở ngay trong tab hiện tại, không mở tab mới.
+  const target = /^intent:/i.test(url) ? "" : ` target="_blank" rel="noopener"`;
+  return `<a class="card" href="${esc(url)}"${target}
       style="--c:${s.color};--cbg:${s.bg}">
     <div class="emoji">${esc(l.emoji || s.emoji)}</div>
     <div class="title">${esc(l.title)}</div>

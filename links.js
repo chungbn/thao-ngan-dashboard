@@ -3,7 +3,7 @@
 //
 // Mỗi bài tập là một dòng { ... }, các trường:
 //   title   : tên bài tập (bắt buộc)
-//   url     : đường link (bắt buộc)
+//   url     : đường link (bắt buộc). Mở app Android: "intent://#Intent;package=<package id>;end"
 //   subject : "toan" | "tv" (Tiếng Việt) | "ta" (Tiếng Anh) | "khac"
 //   emoji   : biểu tượng (không bắt buộc, mặc định theo môn)
 //   note    : ghi chú (không bắt buộc)
@@ -21,5 +21,5 @@ window.LINKS = [
   { title: "Luyện cờ vây", url: "https://chungbn.github.io/go-training/", subject: "khac", emoji: "⚫", note: "Luyện chơi cờ vây", section: "Giải trí" },
   { title: "Học đánh vần Tiếng Việt", url: "https://chungbn.github.io/danh-van/", subject: "tv", emoji: "🔠", note: "Luyện đánh vần" },
   { title: "Explore Our World 1", url: "https://learn.eltngl.com/dashboard/assignments", subject: "ta", emoji: "🌎", note: "Bài tập trên National Geographic Learning" },
-  { title: "App BigBox", url: "https://play.google.com/store/apps/details?id=woongjin.co.kr.bigbox", subject: "ta", emoji: "📦", note: "Học Tiếng Anh trên app BigBox" },
+  { title: "App BigBox", url: "intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=woongjin.co.kr.bigbox;S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dwoongjin.co.kr.bigbox;end", subject: "ta", emoji: "📦", note: "Học Tiếng Anh trên app BigBox" },
 ];
