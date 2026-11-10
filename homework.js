@@ -85,13 +85,28 @@ async function hwLoad(keepSelected) {
   const today = hwToday();
   const week = Math.floor((today - HW.week1) / (7 * 86400000)) + 1;
   // Lấy cả tuần trước và tuần sau phòng khi cô đánh số tuần lệch (nghỉ lễ…).
-  const names = [week - 1, week, week + 1].filter(n => n >= 1).map(n => `Tuần ${n}`);
-  const tables = await Promise.all(names.map(hwLoadSheet));
+  // Tên tab đôi khi có dấu cách thừa (VD " Tuần 13"); thử cả hai kiểu.
+  // Nếu tên tab không tồn tại, Google trả về tab đầu tiên, nên phải lọc theo ngày bên dưới.
+  const weeks = [week - 1, week, week + 1].filter(n => n >= 1);
+  const reqs = weeks.flatMap(n => [`Tuần ${n}`, ` Tuần ${n}`].map(name => ({ n, name })));
+  const tables = await Promise.all(reqs.map(r => hwLoadSheet(r.name)));
   if (tables.every(t => !t)) throw new Error("load");
 
+  // Mỗi ngày lấy từ tab có số tuần khớp nhất với ngày đó (bỏ qua ngày lệch quá 1 tuần,
+  // VD dòng cô copy từ tuần trước mà chưa sửa ngày); cùng độ khớp thì lấy bản có nhiều bài hơn.
+  const weekOfDate = (d) => Math.floor((d - HW.week1) / (7 * 86400000)) + 1;
+  const taskCount = (d) => d.subjects.reduce((s, x) => s + x.tasks.length + (x.comment ? 1 : 0), 0);
   const byKey = new Map();
-  for (const t of tables) if (t) for (const d of hwParseTable(t, today)) byKey.set(d.key, d);
-  hwDays = [...byKey.values()].sort((a, b) => a.date - b.date);
+  tables.forEach((t, i) => {
+    if (!t) return;
+    for (const d of hwParseTable(t, today)) {
+      const dist = Math.abs(weekOfDate(d.date) - reqs[i].n);
+      if (dist > 1) continue;
+      const old = byKey.get(d.key);
+      if (!old || dist < old.dist || (dist === old.dist && taskCount(d) > taskCount(old.day))) byKey.set(d.key, { dist, day: d });
+    }
+  });
+  hwDays = [...byKey.values()].map(x => x.day).sort((a, b) => a.date - b.date);
 
   // Chọn hôm nay, nếu không có (cuối tuần) thì chọn ngày gần nhất trước đó.
   const past = hwDays.filter(d => d.date <= today);
